@@ -13,16 +13,6 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
-/*
-	printf(ANSI_COLOR_RED     "This text is RED!"     ANSI_COLOR_RESET "\n");
-	printf(ANSI_COLOR_GREEN   "This text is GREEN!"   ANSI_COLOR_RESET "\n");
-	printf(ANSI_COLOR_YELLOW  "This text is YELLOW!"  ANSI_COLOR_RESET "\n");
-	printf(ANSI_COLOR_BLUE    "This text is BLUE!"    ANSI_COLOR_RESET "\n");
-	printf(ANSI_COLOR_MAGENTA "This text is MAGENTA!" ANSI_COLOR_RESET "\n");
-	printf(ANSI_COLOR_CYAN    "This text is CYAN!"    ANSI_COLOR_RESET "\n");
-
-*/
-
 //funções a corrigir
 void pedido();
 
@@ -155,59 +145,6 @@ void login(char user[30], char pass[30]) {
 		fprintf(stderr, "Ficheiro de utilizadores não pôde ser aberto\n");
 		return;
 	}
-
-    /*if (file != NULL) {
-        char line[128];
-        do {
-            fscanf(file, "%29s %29s", user2, pass2);
-        }while (fgets(line, sizeof line, file) != NULL); 
-                if ((strcmp(login, user2) == 0) && (strcmp(pass, pass2) == 0)) {
-                    printf("\n>>>User and password correct!<<<\n");
-                    fc = main_menu();
-                }
-                else {
-                    printf("\n>>>User or password incorrect!<<<\n");
-                    system("PAUSE");
-                    fc = sign_In(login, pass);
-                }
-    }
-    else printf("File was not founded");
-    fclose(file);
-    system("PAUSE");
-*/
-    					//LER A PORRA DO FICHEIRO E PROCURAR O UTILIZADOR E PASS
-	/*char  user[200], pass[200];
-	FILE *f;
-	utilizador u;
-    if( !(f=fopen("../Login/Users/Ativos/utilizadores","r+")) && !(f=fopen("../Login/Users/Ativos/utilizadores","w+"))) {
-        fprintf(stderr,"Não foi possível abrir o ficheiro nem criá-lo.\n");
-        return;
-    }
-
-    printf("\033[22;34mUtilizador:\033[0m ");
-    scanf("%s", &user);
-    while(fscanf(f,"%s\n%s",u.nome,u.senha) != EOF) {
-    	if(!strcmp(user,u.nome)) {
-    		printf("\033[22;34mSenha:\033[0m ");
-    		scanf("%s", &pass);
-    		if(!strcmp(pass,u.senha)) { //se a pass e u.senha forem iguais
-    			system("clear");
-    			menu_cliente();
-    		}
-    		else {
-    			printf("\n\x1b[31mPalavra passe errada! Tente novamente!\33[0m\n");
-    			printf("Carregando...\n");
-    			usleep(3000000);
-    			system("clear");
-    			menu();
-    		}
-    	}
-    	else {
-    		printf("\x1b[31mNome de utilizador não encontrado. Tente novamente.\33[0m\n");
-    		usleep(2000000);
-    		login();
-    	}
-    }*/
 }
 
 void menu_cliente(){
