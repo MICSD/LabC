@@ -24,11 +24,11 @@
 */
 
 //funções a corrigir
-void login();
 void pedido();
-void user_pass();
 
 //funções acabadas
+void login();
+void user_pass();
 void menu_cliente();
 void menu();
 
@@ -86,6 +86,8 @@ void pedido() {
 	printf("\033[22;34mData de nascimento (DD/MM/AA):\033[0m ");
 	scanf("%s", &data);
 
+	//fwrite();
+
 	//ADICIONAR E CRIAR UM DOCUMENTO PARA PEDIDOS COM AS INFORMAÇÕES FORNECIDAS (fwrite)
 	printf("\nA carregar... Por favor aguarde.\n");
 	usleep(3000000);
@@ -122,7 +124,6 @@ void login(char user[30], char pass[30]) {
 				return;
 			}
 			pass2[strlen(pass2)-1]='\0';	//tira o \n do fim
-			printf("A tentar user '%s' que tem pass '%s'\n",user2,pass2);
 			if(!strcmp(user2,user) && !strcmp(pass2,pass)) {
 				printf("Login com sucesso! Bem vindo(a), %s\n", user);
 				free(user2);
@@ -130,7 +131,7 @@ void login(char user[30], char pass[30]) {
 				return;
 			}
 		}
-		printf("Conjunto username-pass inválido! Tente novamente! user: '%s' pass: '%s'\n",user,pass);
+		printf("Conjunto username-pass inválido! Tente novamente!\n");
 		user_pass();
 		return;
     	while(fgets(line, sizeof line, file)) {
