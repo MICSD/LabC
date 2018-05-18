@@ -17,10 +17,10 @@
 void pedido();
 
 //funções acabadas
-void login();
-void user_pass();
-void menu_cliente();
-void menu();
+void menu(); //menu inicial
+void user_pass(); //lê o utilizador e a senha do stdin e usa-os como argumentos para a funçõa login
+void login(); //autenticação
+void menu_cliente(); //menu de opções dentro da conta
 
 //funções por fazer
 void feed();
@@ -38,6 +38,18 @@ typedef struct {
     char nome[200];
     char senha[200];
 } utilizador;
+
+typedef char bool;
+#define true 1
+#define false 0
+
+bool strIsOnlySpaces(const char* str) {
+	size_t n=str?strlen(str):0;
+	for(size_t i=0 ; i<n ; i++)
+		if(!isspace(str[i] && isprint(str[i])))
+			return false;
+	return true;
+}
 
 void menu() {
 	
@@ -66,23 +78,42 @@ void menu() {
 FILE *f;
 
 void pedido() {
+	FILE *pedidos;
 	char new_username[30], new_password[20], email[100], data[9];
+	pedidos = fopen("Login/Users/pedidos","w+");
+	
 	printf("\033[22;34mUsername:\033[0m ");
-	scanf("%s", &new_username);
+	do {
+		fgets(new_username,30,stdin);
+	} while(strIsOnlySpaces(new_username)); 
+	fgets(new_username,30,stdin);	
+	fprintf(pedidos,"%s", new_username);
+	
 	printf("\033[22;34mPassword:\033[0m ");
-	scanf("%s", &new_password);
-	printf("\033[22;34mEmail: \033[0m");
-	scanf("%s", &email);
-	printf("\033[22;34mData de nascimento (DD/MM/AA):\033[0m ");
-	scanf("%s", &data);
+	do {
+		fgets(new_password,20,stdin);
+	} while(strIsOnlySpaces(new_password)); 
+	fgets(new_password,20,stdin);
+	fprintf(pedidos,"%s", new_password);
 
-	//fwrite();
+	printf("\033[22;34mEmail:\033[0m");
+	do {
+		fgets(email,100,stdin);
+	} while(strIsOnlySpaces(email));
+	fprintf(pedidos,"%s", email);
+	
+	printf("\033[22;34mData de nascimento (DD/MM/AA):\033[0m ");
+	do {
+		fgets(data,9,stdin);
+	} while(strIsOnlySpaces(data));
+	fgets(data,9,stdin);
+	fprintf(pedidos,"%s", data);
 
 	//ADICIONAR E CRIAR UM DOCUMENTO PARA PEDIDOS COM AS INFORMAÇÕES FORNECIDAS (fwrite)
 	printf("\nA carregar... Por favor aguarde.\n");
-	usleep(3000000);
+	usleep(2000000);
 	printf(ANSI_COLOR_GREEN "Pedido registado com sucesso! Volte mais tarde.\n" ANSI_COLOR_RESET);
-	usleep(3000000);
+	usleep(2000000);
 	system("clear");
 	menu();
 }
@@ -106,18 +137,21 @@ void login(char user[30], char pass[30]) {
 	if (file) {
 		size_t n_u, n_p;
 		while(getline(&user2, &n_u, file)!=-1) {
+			if(strlen)
 			user2[strlen(user2)-1]='\0';	//tira o \n do fim
-			if(getline(&pass2, &n_p, file)==-1) {
+			if(getline(&pass2, &n_p, file)==-1) {					//Se o ficheiro tiver um formato errado sai da função
 				fprintf(stderr, "Ficheiro com formato errado\n");
 				free(user2);
 				free(pass2);
 				return;
 			}
 			pass2[strlen(pass2)-1]='\0';	//tira o \n do fim
-			if(!strcmp(user2,user) && !strcmp(pass2,pass)) {
+			if(!strcmp(user2,user) && !strcmp(pass2,pass)) {		//Se o user2 for igual ao user a ser testado E se a pass2 for igual à pass, então o conjunto user-pass é válido
 				printf("Login com sucesso! Bem vindo(a), %s\n", user);
 				free(user2);
 				free(pass2);
+				system("clear");
+				menu_cliente(); //Vai para o menu_cliente
 				return;
 			}
 		}
@@ -139,7 +173,6 @@ void login(char user[30], char pass[30]) {
             		user_pass();
             	}
         	}
-        // else: line is invalid!
    		}
 	} else {
 		fprintf(stderr, "Ficheiro de utilizadores não pôde ser aberto\n");
@@ -290,4 +323,3 @@ int main(int argc, char const *argv[]) {
 	system("clear");
 	menu();
 }
-
