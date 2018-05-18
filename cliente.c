@@ -6,13 +6,14 @@
 #include <ctype.h>
 #include <dirent.h>
 #define MAX_SIZE 1000
-#define ANSI_COLOR_GREEN   "\x1b[32m"
-#define ANSI_COLOR_RED     "\x1b[31m"
-#define ANSI_COLOR_YELLOW  "\x1b[33m"
-#define ANSI_COLOR_BLUE    "\x1b[34m"
-#define ANSI_COLOR_MAGENTA "\x1b[35m"
-#define ANSI_COLOR_CYAN    "\x1b[36m"
-#define ANSI_COLOR_RESET   "\x1b[0m"
+#define ANSI_COLOR_GREEN    	 "\x1b[32m"
+#define ANSI_COLOR_RED       	 "\x1b[31m"
+#define ANSI_COLOR_YELLOW  		 "\x1b[33m"
+#define ANSI_COLOR_BLUE			 "\x1b[34m"
+#define ANSI_COLOR_BRIGHT_CYAN   "\x1b[96m"
+#define ANSI_COLOR_MAGENTA  	 "\x1b[35m"
+#define ANSI_COLOR_CYAN     	 "\x1b[36m"
+#define ANSI_COLOR_RESET   		 "\x1b[0m"
 
 typedef char bool;
 #define true 1
@@ -43,6 +44,8 @@ typedef struct {
     char nome[200];
     char senha[200];
 } utilizador;
+
+char user_usado[50];
 
 
 bool strIsOnlySpaces(const char* str) {		//vê se um vetor de char's tem só white spaces
@@ -178,6 +181,7 @@ void user_pass() {
     login(user, pass);
 }
 
+
 void login(char user[30], char pass[30]) {
 	FILE *file;
     char *user2=NULL, *pass2=NULL, *line=NULL;
@@ -195,6 +199,7 @@ void login(char user[30], char pass[30]) {
 			}
 			pass2[strlen(pass2)-1]='\0';	//tira o \n do fim
 			if(!strcmp(user2,user) && !strcmp(pass2,pass)) {		//Se o user2 for igual ao user a ser testado E se a pass2 for igual à pass, então o conjunto user-pass é válido
+				user_usado = user;
 				printf("Login com sucesso! Bem vindo(a), %s\n", user);
 				free(user2);
 				free(pass2);
@@ -364,11 +369,20 @@ void subTopico() {
 				continue;
 			}
 			else{
-				printf("→ %s\n", conteudoDir -> d_name);
+				printf(ANSI_COLOR_BRIGHT_CYAN "→ %s\n" ANSI_COLOR_RESET, conteudoDir -> d_name);
 			}
 		}
 		printf("Insira o nome do tópico que quer subscrever: ");
 		scanf("%s", &nome_topico);
+		if((fopen("%s",nome_topico))==NULL) {
+				printf("O tópico não existe.\n");
+				sleep(1);
+				system("clear");
+				subTopico();
+		}
+		else {
+			fprintf(, "%s\n", );
+		}
 		break;
 		case 2:
 		menu_cliente();
@@ -376,6 +390,7 @@ void subTopico() {
 		default:
 		printf("Opção inválida! Tente novamente!\n");
 		sleep(2);
+		system("clear");
 		subTopico();
 		break;
 	}
