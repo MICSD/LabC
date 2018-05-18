@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <dirent.h>
 #define MAX_SIZE 1000
 #define ANSI_COLOR_GREEN   "\x1b[32m"
 #define ANSI_COLOR_RED     "\x1b[31m"
@@ -13,24 +14,28 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
+typedef char bool;
+#define true 1
+#define false 0
 //funções a corrigir
+bool user_exists(); //verifica se um utilizador já existe ou não
 
 //funções acabadas
 void menu(); //menu inicial
 void user_pass(); //lê o utilizador e a senha do stdin e usa-os como argumentos para a funçõa login
 void login(); //autenticação
 void menu_cliente(); //menu de opções dentro da conta
-void pedido();
+void pedido(); //guarda as informações sobre um novo utilizador no ficheiro pedidos
 
 //funções por fazer
-void feed();
-void topicos();
-void topMaisAti();
-void subTopico();
-void pubTopico();
-void gerirListaSub();
-void estatisticas();
-void gerirConta();
+void feed(); //mostrar o feed
+void topicos(); //ver topicos e respetivas mensagens e likes
+void topMaisAti(); //procurar tópicos mais ativos
+void subTopico(); //subscrever tópicos
+void pubTopico(); //publicar tópicos
+void gerirListaSub(); //gerir lista de subscrições
+void estatisticas(); //ver estatisticas
+void gerirConta(); 
 
 
 
@@ -39,9 +44,6 @@ typedef struct {
     char senha[200];
 } utilizador;
 
-typedef char bool;
-#define true 1
-#define false 0
 
 bool strIsOnlySpaces(const char* str) {		//vê se um vetor de char's tem só white spaces
 	size_t n=str?strlen(str):0;
@@ -49,6 +51,41 @@ bool strIsOnlySpaces(const char* str) {		//vê se um vetor de char's tem só whi
 		if(!isspace(str[i] && isprint(str[i])))
 			return false;
 	return true;
+}
+
+bool user_exists(char new_username[30]) {
+	FILE *fc;
+	char *user2=NULL, *pass2=NULL, *line=NULL;
+	fc = fopen("Login/Users/utilizadores","r");
+	//if (fc) {
+		size_t n_u, n_p;
+		while(getline(&user2, &n_u, fc)!=-1) {
+			if(strlen)
+			user2[strlen(user2)-1]='\0';	//tira o \n do fim
+			/*if(getline(&pass2, &n_p, f)==-1) {					//Se o ficheiro tiver um formato errado sai da função
+				fprintf(stderr, "Ficheiro com formato errado\n");
+				free(user2);
+				free(pass2);
+				return;
+			}*/
+			getline(&pass2, &n_p, fc);
+			pass2[strlen(pass2)-1]='\0';	//tira o \n do fim
+			if(!strcmp(new_username,user2)) {		//Se o user2 for igual ao user a ser testado E se a pass2 for igual à pass, então o conjunto user-pass é válido
+				printf("Utilizador já existente!");
+				free(user2);
+				free(pass2);
+				return true;
+			}
+		
+        }
+    //}
+   
+	/*else {
+		fprintf(stderr, "Ficheiro de utilizadores não pôde ser aberto\n");
+		return;
+	}*/
+
+	return false;
 }
 
 void menu() {
@@ -95,6 +132,12 @@ void pedido() {
 		fgets(new_username,30,stdin);
 	} while(strIsOnlySpaces(new_username));
 	fprintf(pedidos,"%s", new_username);
+
+	if(user_exists(new_username)) {
+		printf("Este utilizador já existe!\n");
+		pedido();
+		return;
+	}
 	
 	printf("\033[22;34mPassword:\033[0m ");
 	do {
@@ -303,9 +346,60 @@ void topMaisAti() {
 }
 
 void subTopico() {
+	//ver os topicos existentes
+	struct dirent *conteudoDir;
+	DIR *diretorio;
+	diretorio = opendir("Topicos");
+	int a;
+	char nome_topico[30];
+	
+	printf("1) Subscrever tópicos\n");
+	printf("2) Voltar\n");
+	printf("Insira uma opção: ");
+	scanf("%d", &a);
+	switch(a) {
+		case 1:
+		while((conteudoDir=readdir(diretorio))!=NULL) {
+			if(!strcmp(conteudoDir->d_name, "." ) || !strcmp(conteudoDir->d_name, "..") || !strcmp(conteudoDir->d_name, "lista_topicos_sub")){
+				continue;
+			}
+			else{
+				printf("→ %s\n", conteudoDir -> d_name);
+			}
+		}
+		printf("Insira o nome do tópico que quer subscrever: ");
+		scanf("%s", &nome_topico);
+		break;
+		case 2:
+		menu_cliente();
+		break;
+		default:
+		printf("Opção inválida! Tente novamente!\n");
+		sleep(2);
+		subTopico();
+		break;
+	}
+	
+	closedir(diretorio);
+	//OPCOES
+	
+
+	/*if((fopen("%s",nome_topico))==NULL) {
+		printf("O tópico não existe.\n");
+		sleep(1);
+		system("clear");
+		subTopico();
+	}
+	else {
+
+	}*/
+
+
+
+
+	//procurar os tópicos cujo nome satisfaz um padrão fornecido ------- ESQUECER
 	//SUBSCREVER TÓPICO
 }
-
 void pubTopico() {
 	//PUBLICAR TÓPICO
 }
