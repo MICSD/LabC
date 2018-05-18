@@ -14,13 +14,13 @@
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
 //funções a corrigir
-void pedido();
 
 //funções acabadas
 void menu(); //menu inicial
 void user_pass(); //lê o utilizador e a senha do stdin e usa-os como argumentos para a funçõa login
 void login(); //autenticação
 void menu_cliente(); //menu de opções dentro da conta
+void pedido();
 
 //funções por fazer
 void feed();
@@ -43,7 +43,7 @@ typedef char bool;
 #define true 1
 #define false 0
 
-bool strIsOnlySpaces(const char* str) {
+bool strIsOnlySpaces(const char* str) {		//vê se um vetor de char's tem só white spaces
 	size_t n=str?strlen(str):0;
 	for(size_t i=0 ; i<n ; i++)
 		if(!isspace(str[i] && isprint(str[i])))
@@ -79,21 +79,27 @@ FILE *f;
 
 void pedido() {
 	FILE *pedidos;
-	char new_username[30], new_password[20], email[100], data[9];
-	pedidos = fopen("Login/Users/pedidos","w+");
+	char nome[50], new_username[30], new_password[20], email[100], data[9];
+	pedidos = fopen("Login/Users/pedidos","a");
 	
+
+	printf("\033[22;34mNome:\033[0m ");
+	do {
+		fgets(nome,50,stdin);		//lê o nome do utilizador
+	} while(strIsOnlySpaces(nome));
+	fgets(nome,30,stdin);	
+	fprintf(pedidos,"%s", nome);
+
 	printf("\033[22;34mUsername:\033[0m ");
 	do {
 		fgets(new_username,30,stdin);
-	} while(strIsOnlySpaces(new_username)); 
-	fgets(new_username,30,stdin);	
+	} while(strIsOnlySpaces(new_username));
 	fprintf(pedidos,"%s", new_username);
 	
 	printf("\033[22;34mPassword:\033[0m ");
 	do {
 		fgets(new_password,20,stdin);
 	} while(strIsOnlySpaces(new_password)); 
-	fgets(new_password,20,stdin);
 	fprintf(pedidos,"%s", new_password);
 
 	printf("\033[22;34mEmail:\033[0m");
@@ -106,10 +112,9 @@ void pedido() {
 	do {
 		fgets(data,9,stdin);
 	} while(strIsOnlySpaces(data));
-	fgets(data,9,stdin);
+	fflush(stdin);
 	fprintf(pedidos,"%s", data);
 
-	//ADICIONAR E CRIAR UM DOCUMENTO PARA PEDIDOS COM AS INFORMAÇÕES FORNECIDAS (fwrite)
 	printf("\nA carregar... Por favor aguarde.\n");
 	usleep(2000000);
 	printf(ANSI_COLOR_GREEN "Pedido registado com sucesso! Volte mais tarde.\n" ANSI_COLOR_RESET);
