@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <dirent.h>
-#include <curses.h>
+//#include <curses.h>
 #define MAX_SIZE 1000
 #define ANSI_COLOR_GREEN    	 "\x1b[32m"
 #define ANSI_COLOR_RED       	 "\x1b[31m"
@@ -16,7 +16,7 @@
 #define ANSI_COLOR_CYAN     	 "\x1b[36m"
 #define ANSI_COLOR_RESET   		 "\x1b[0m"
 
-//typedef char bool;
+typedef char bool;
 #define true 1
 #define false 0
 //funções a corrigir
@@ -252,6 +252,7 @@ void menu_cliente(){
 	printf("\033[22;34m9)\x1b[0m Logout\n\nEscolha uma opção: ");
 	int opcao;
 	scanf("%d", &opcao);
+	getchar(); //ler o \n
 	switch(opcao) {
 		case 1:
 			feed();
@@ -292,6 +293,8 @@ void menu_cliente(){
 
 void feed() {
 	//MOSTRAR O FEED
+	//topicos e respetivas mensagens
+
 	printf("Feed\n");
 }
 
@@ -309,9 +312,18 @@ void topicos() {
 			printf(ANSI_COLOR_BRIGHT_CYAN "→ " ANSI_COLOR_RESET "%s\n", conteudoDir -> d_name);
 		}
 	}
+	char a;
 	printf("Para voltar ao menu prima qualquer tecla.\n");
-	getch();
-	menu_cliente();
+	scanf("%c", &a);
+	switch(a) {
+		case 'a':
+		menu_cliente();
+		break;
+		default:
+		menu_cliente();
+		break;
+	}
+	
 }
 
 void topMaisAti() {
@@ -320,7 +332,7 @@ void topMaisAti() {
 	char a;
 	if(!isalpha(a)) {
 		printf("Opção inválida! Tente novamente!\n");
-		usleep(4000000);
+		usleep(2000000);
 		system("clear");
 		topMaisAti();
 	}
@@ -382,7 +394,7 @@ void subTopico() {
 	diretorio = opendir("Topicos");
 	int a;
 	char path_topico[40] = "Topicos/";
-	char nome_topico[100];
+	char nome_topico[100] = "Topicos/";
 	
 	printf("1) Subscrever tópicos\n");
 	printf("2) Voltar\n");
@@ -414,7 +426,7 @@ void subTopico() {
 				//printf("1\n");
 				lista = fopen("Topicos/lista_topicos_sub", "a");
 				fprintf(lista, "%s:\n", user_usado);
-				fprintf(lista, "→ %s\n", nome_topico);
+				fprintf(lista, "→ %s\n", nome_topico+8);
 			}
 			break;
 		case 2:
@@ -430,24 +442,7 @@ void subTopico() {
 	}
 	
 	closedir(diretorio);
-	//OPCOES
-	
-
-	/*if((fopen("%s",nome_topico))==NULL) {
-		printf("O tópico não existe.\n");
-		sleep(1);
-		system("clear");
-		subTopico();
-	}
-	else {
-
-	}*/
-
-
-
-
-	//procurar os tópicos cujo nome satisfaz um padrão fornecido ------- ESQUECER
-	//SUBSCREVER TÓPICO
+	//TO DO: agrupar os topicos subscritos em cada pessoa
 }
 void pubTopico() {
 	//PUBLICAR TÓPICO
