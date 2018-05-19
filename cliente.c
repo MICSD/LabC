@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <dirent.h>
+#include <curses.h>
 #define MAX_SIZE 1000
 #define ANSI_COLOR_GREEN    	 "\x1b[32m"
 #define ANSI_COLOR_RED       	 "\x1b[31m"
@@ -15,11 +16,13 @@
 #define ANSI_COLOR_CYAN     	 "\x1b[36m"
 #define ANSI_COLOR_RESET   		 "\x1b[0m"
 
-typedef char bool;
+//typedef char bool;
 #define true 1
 #define false 0
 //funções a corrigir
 bool user_exists(); //verifica se um utilizador já existe ou não
+void topMaisAti(); //procurar tópicos mais ativos
+void subTopico(); //subscrever tópicos
 
 //funções acabadas
 void menu(); //menu inicial
@@ -27,16 +30,16 @@ void user_pass(); //lê o utilizador e a senha do stdin e usa-os como argumentos
 void login(); //autenticação
 void menu_cliente(); //menu de opções dentro da conta
 void pedido(); //guarda as informações sobre um novo utilizador no ficheiro pedidos
+void strCompact(char* str); //limpa caracteres brancos do inicio e do fim de uma string
+bool strIsOnlySpaces(const char* str); //vê se uma string tem só white spaces
+void topicos(); //ver topicos e respetivas mensagens e likes
 
 //funções por fazer
 void feed(); //mostrar o feed
-void topicos(); //ver topicos e respetivas mensagens e likes
-void topMaisAti(); //procurar tópicos mais ativos
-void subTopico(); //subscrever tópicos
 void pubTopico(); //publicar tópicos
 void gerirListaSub(); //gerir lista de subscrições
 void estatisticas(); //ver estatisticas
-void gerirConta(); 
+void gerirConta(); //ver e/ou mudar os dados do utilizador 
 
 
 
@@ -48,7 +51,7 @@ typedef struct {
 char user_usado[50];
 
 
-bool strIsOnlySpaces(const char* str) {		//vê se um vetor de char's tem só white spaces
+bool strIsOnlySpaces(const char* str) {		
 	size_t n=str?strlen(str):0;
 	for(size_t i=0 ; i<n ; i++)
 		if(!isspace(str[i] && isprint(str[i])))
@@ -56,7 +59,23 @@ bool strIsOnlySpaces(const char* str) {		//vê se um vetor de char's tem só whi
 	return true;
 }
 
-bool user_exists(char new_username[30]) {
+void strCompact(char* str) {
+	size_t len;
+	if(!str || !(len=strlen(str)))
+		return;
+	size_t nInicio=0;
+	while(str[nInicio] && isspace(str[nInicio]))
+		nInicio++;
+	if(nInicio>=len) {
+		str[0]=0;
+	} else {
+		memmove(str,str+nInicio,len-nInicio+1);
+		for(len=strlen(str) ; len>0 && isspace(str[len-1]) ; len--)
+			str[len-1]=0;
+	}
+}
+
+bool user_exists(const char* new_username) {
 	FILE *fc;
 	char *user2=NULL, *pass2=NULL, *line=NULL;
 	fc = fopen("Login/Users/utilizadores","r");
@@ -74,7 +93,7 @@ bool user_exists(char new_username[30]) {
 			getline(&pass2, &n_p, fc);
 			pass2[strlen(pass2)-1]='\0';	//tira o \n do fim
 			if(!strcmp(new_username,user2)) {		//Se o user2 for igual ao user a ser testado E se a pass2 for igual à pass, então o conjunto user-pass é válido
-				printf("Utilizador já existente!");
+				//printf("Utilizador já existente!");
 				free(user2);
 				free(pass2);
 				return true;
@@ -110,6 +129,8 @@ void menu() {
 		system("clear");
 		exit(0);
 	default:
+		printf(ANSI_COLOR_RED "Escolha inválida! Tente novamente!\n" ANSI_COLOR_RESET);
+		sleep(2);
 		system("clear");
 		menu();
   }  
@@ -119,22 +140,23 @@ FILE *f;
 
 void pedido() {
 	FILE *pedidos;
-	char nome[50], new_username[30], new_password[20], email[100], data[9];
+	char nome[50], new_username[30], new_password[20], email[100], data[20];
 	pedidos = fopen("Login/Users/pedidos","a");
 	
 
 	printf("\033[22;34mNome:\033[0m ");
 	do {
 		fgets(nome,50,stdin);		//lê o nome do utilizador
+		strCompact(nome);
 	} while(strIsOnlySpaces(nome));
-	fgets(nome,30,stdin);	
-	fprintf(pedidos,"%s", nome);
+	fprintf(pedidos,"%s\n", nome);
 
 	printf("\033[22;34mUsername:\033[0m ");
 	do {
 		fgets(new_username,30,stdin);
+		strCompact(new_username);
 	} while(strIsOnlySpaces(new_username));
-	fprintf(pedidos,"%s", new_username);
+	fprintf(pedidos,"%s\n", new_username);
 
 	if(user_exists(new_username)) {
 		printf("Este utilizador já existe!\n");
@@ -145,24 +167,27 @@ void pedido() {
 	printf("\033[22;34mPassword:\033[0m ");
 	do {
 		fgets(new_password,20,stdin);
+		strCompact(new_password);
 	} while(strIsOnlySpaces(new_password)); 
-	fprintf(pedidos,"%s", new_password);
+	fprintf(pedidos,"%s\n", new_password);
 
 	printf("\033[22;34mEmail:\033[0m");
 	do {
 		fgets(email,100,stdin);
+		strCompact(email);
 	} while(strIsOnlySpaces(email));
-	fprintf(pedidos,"%s", email);
+	fprintf(pedidos,"%s\n", email);
 	
-	printf("\033[22;34mData de nascimento (DD/MM/AA):\033[0m ");
+	printf("\033[22;34mData de nascimento (DD/MM/AAAA):\033[0m ");
 	do {
-		fgets(data,9,stdin);
+		fgets(data,20,stdin);
+		strCompact(data);
 	} while(strIsOnlySpaces(data));
 	fflush(stdin);
-	fprintf(pedidos,"%s", data);
+	fprintf(pedidos,"%s\n", data);
 
 	printf("\nA carregar... Por favor aguarde.\n");
-	usleep(2000000);
+	sleep(1);
 	printf(ANSI_COLOR_GREEN "Pedido registado com sucesso! Volte mais tarde.\n" ANSI_COLOR_RESET);
 	usleep(2000000);
 	system("clear");
@@ -192,14 +217,14 @@ void login(char user[30], char pass[30]) {
 			if(strlen)
 			user2[strlen(user2)-1]='\0';	//tira o \n do fim
 			if(getline(&pass2, &n_p, file)==-1) {					//Se o ficheiro tiver um formato errado sai da função
-				fprintf(stderr, "Ficheiro com formato errado\n");
+				printf("Ficheiro com formato errado\n");
 				free(user2);
 				free(pass2);
 				return;
 			}
 			pass2[strlen(pass2)-1]='\0';	//tira o \n do fim
 			if(!strcmp(user2,user) && !strcmp(pass2,pass)) {		//Se o user2 for igual ao user a ser testado E se a pass2 for igual à pass, então o conjunto user-pass é válido
-				user_usado = user;
+				strcpy(user_usado, user);
 				printf("Login com sucesso! Bem vindo(a), %s\n", user);
 				free(user2);
 				free(pass2);
@@ -210,30 +235,13 @@ void login(char user[30], char pass[30]) {
 		}
 		printf("Conjunto username-pass inválido! Tente novamente!\n");
 		user_pass();
-		return;
-    	while(fgets(line, sizeof line, file)) {
-        	if(sscanf(line, "%29s %29s", user2, pass2) == 2) {
-            	if(!strcmp(user, user2) && !strcmp(pass,pass2)) {
-            		system("clear");
-    				fclose(file);
-            		menu_cliente();
-            	}
-            	else {
-            		printf("Conjunto username-pass inválido! Tente novamente!\n");
-            		usleep(200000);
-            		system("clear");
-    				fclose(file);
-            		user_pass();
-            	}
-        	}
-   		}
 	} else {
-		fprintf(stderr, "Ficheiro de utilizadores não pôde ser aberto\n");
-		return;
+		printf("Ficheiro de utilizadores não pôde ser aberto\n");
 	}
 }
 
 void menu_cliente(){
+	system("clear");
 	printf("\033[22;34m**Menu**\n1)\x1b[0m Ver feed\n\033[22;34m2)\x1b[0m Ver tópicos\n");
 	printf("\033[22;34m3)\x1b[0m Procurar tópicos mais ativos\n");
 	printf("\033[22;34m4)\x1b[0m Subscrever tópico\n");
@@ -289,6 +297,21 @@ void feed() {
 
 void topicos() {
 	//MOSTRAR TOPICOS
+	struct dirent *conteudoDir;
+	DIR *diretorio;
+	diretorio = opendir("Topicos");
+	printf(ANSI_COLOR_BRIGHT_CYAN "Tópicos existentes:\n" ANSI_COLOR_RESET);
+	while((conteudoDir=readdir(diretorio))!=NULL) {
+		if(!strcmp(conteudoDir->d_name, "." ) || !strcmp(conteudoDir->d_name, "..") || !strcmp(conteudoDir->d_name, "lista_topicos_sub")){
+			continue;
+		}
+		else{
+			printf(ANSI_COLOR_BRIGHT_CYAN "→ " ANSI_COLOR_RESET "%s\n", conteudoDir -> d_name);
+		}
+	}
+	printf("Para voltar ao menu prima qualquer tecla.\n");
+	getch();
+	menu_cliente();
 }
 
 void topMaisAti() {
@@ -354,45 +377,56 @@ void subTopico() {
 	//ver os topicos existentes
 	struct dirent *conteudoDir;
 	DIR *diretorio;
+	FILE *lista;
+	FILE *topico;
 	diretorio = opendir("Topicos");
 	int a;
-	char nome_topico[30];
+	char path_topico[40] = "Topicos/";
+	char nome_topico[100];
 	
 	printf("1) Subscrever tópicos\n");
 	printf("2) Voltar\n");
 	printf("Insira uma opção: ");
 	scanf("%d", &a);
+	system("clear");
 	switch(a) {
 		case 1:
-		while((conteudoDir=readdir(diretorio))!=NULL) {
-			if(!strcmp(conteudoDir->d_name, "." ) || !strcmp(conteudoDir->d_name, "..") || !strcmp(conteudoDir->d_name, "lista_topicos_sub")){
-				continue;
+			printf(ANSI_COLOR_BRIGHT_CYAN "Tópicos existentes:\n" ANSI_COLOR_RESET);
+			while((conteudoDir=readdir(diretorio))!=NULL) {
+				if(!strcmp(conteudoDir->d_name, "." ) || !strcmp(conteudoDir->d_name, "..") || !strcmp(conteudoDir->d_name, "lista_topicos_sub")){
+					continue;
+				}
+				else{
+					printf(ANSI_COLOR_BRIGHT_CYAN "→ " ANSI_COLOR_RESET "%s\n", conteudoDir -> d_name);
+				}
 			}
-			else{
-				printf(ANSI_COLOR_BRIGHT_CYAN "→ %s\n" ANSI_COLOR_RESET, conteudoDir -> d_name);
+			printf("Insira o nome do tópico que quer subscrever: ");
+			scanf("%s", nome_topico+8);
+			//printf("%s\n",nome_topico);
+			if((topico = fopen(nome_topico,"r"))==NULL) {
+					//printf("0\n");
+					printf("O tópico não existe.\n");
+					sleep(1);
+					system("clear");
+					subTopico();
 			}
-		}
-		printf("Insira o nome do tópico que quer subscrever: ");
-		scanf("%s", &nome_topico);
-		if((fopen("%s",nome_topico))==NULL) {
-				printf("O tópico não existe.\n");
-				sleep(1);
-				system("clear");
-				subTopico();
-		}
-		else {
-			fprintf(, "%s\n", );
-		}
-		break;
+			else {
+				//printf("1\n");
+				lista = fopen("Topicos/lista_topicos_sub", "a");
+				fprintf(lista, "%s:\n", user_usado);
+				fprintf(lista, "→ %s\n", nome_topico);
+			}
+			break;
 		case 2:
-		menu_cliente();
-		break;
+			system("clear");
+			menu_cliente();
+			break;
 		default:
-		printf("Opção inválida! Tente novamente!\n");
-		sleep(2);
-		system("clear");
-		subTopico();
-		break;
+			printf("Opção inválida! Tente novamente!\n");
+			sleep(2);
+			system("clear");
+			subTopico();
+			break;
 	}
 	
 	closedir(diretorio);
