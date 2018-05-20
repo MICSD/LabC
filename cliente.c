@@ -225,7 +225,7 @@ void login(char user[], char pass[]) {
 			if(strlen)
 			user2[strlen(user2)-1]='\0';	//tira o \n do fim
 			if(getline(&pass2, &n_p, file)==-1) {					//Se o ficheiro tiver um formato errado sai da função
-				printf("Ficheiro com formato errado\n");
+				printf(ANSI_COLOR_RED"Ficheiro com formato errado\n"ANSI_COLOR_RESET);
 				free(user2);
 				free(pass2);
 				fclose(file);
@@ -234,11 +234,14 @@ void login(char user[], char pass[]) {
 			pass2[strlen(pass2)-1]='\0';	//tira o \n do fim
 			if(!strcmp(user2,user) && !strcmp(pass2,pass)) {		//Se o user2 for igual ao user a ser testado E se a pass2 for igual à pass, então o conjunto user-pass é válido
 				strcpy(user_usado, user);
-				printf("Login com sucesso! Bem vindo(a), %s\n", user);
+				printf(ANSI_COLOR_GREEN"Login com sucesso!\n"ANSI_COLOR_RESET, user);
 				free(user2);
 				free(pass2);
 				fclose(file);
+				sleep(2);
 				system("clear");
+				printf(ANSI_COLOR_BLUE "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\t\t\t\t\t\t----------------------------\n\t\t\t\t\t\t     Bem vindo(a) %s!\n\t\t\t\t\t\t----------------------------\n" ANSI_COLOR_RESET, user_usado);
+				sleep(4);
 				menu_cliente(); //Vai para o menu_cliente
 				return;
 			}
@@ -264,10 +267,12 @@ void menu_cliente(){
 	printf("\033[22;34m6)\x1b[0m Gerir Lista de Subscrições\n");
 	printf("\033[22;34m7)\x1b[0m Ver Estatísticas\n");
 	printf("\033[22;34m8)\x1b[0m Gerir conta\n");
-	printf("\033[22;34m9)\x1b[0m Logout\n\nEscolha uma opção: ");
+	printf("\033[22;34m9)\x1b[0m Logout\n\n"ANSI_COLOR_CYAN"---------------------\nEscolha uma opção: ");
 	int opcao;
 	scanf("%d", &opcao);
 	getchar(); //ler o \n
+	printf("---------------------\n"ANSI_COLOR_RESET);
+	sleep(2);
 	switch(opcao) {
 		case 1:
 			feed();
@@ -566,7 +571,58 @@ void estatisticas() {
 
 void gerirConta() {
 	//MUDAR A SENHA, NOME, DATA DE NASCIMENTO, EMAIL, ...
+	printf("Olá %s!\n", user_usado);
+	printf("Os seus dados são os seguintes: \n");
 
+    FILE *info;
+ 
+    char filename[100] = "Login/Users/info_utilizadores", c;
+    char *line = NULL;
+    size_t s = 0; 
+    // Open file
+    info = fopen(filename, "r");
+    if (info == NULL)
+    {
+        printf("Cannot open file \n");
+        menu_cliente();
+    }
+ 	
+ 	size_t n_bytes=getFileSize(info);
+ 	fseek(info,0,SEEK_SET);
+    // Lê o conteúdo do ficheiro
+ 	bool reachedTheUser=false;
+    for (int count = 0 ; (c = getline(&line,&s,info))!=EOF ; count=count>=4?0:(count+1))
+    {
+    	strCompact(line);
+    	if(count==0) {
+    		reachedTheUser=!strcmp(line,user_usado);
+    	}
+    	if(reachedTheUser) {
+    		if(count==0)
+	    		printf("Username: ");
+	    	else if(count==1) {
+	    		printf("Pass: ");
+	    	}else if(count==2) {
+	    		printf("Nome: ");
+	    	}else if(count==3) {
+	    		printf("Email: ");
+	    	}
+	    	else if(count==4) {
+	    		printf("Data de nascimento: %s", line);
+	    		break;
+	    	}
+	    	else
+	    		break;
+	        printf ("%s\n", line);
+    	}
+    }
+    if(!reachedTheUser && c<0) {
+    	printf("Utilizador sem informações\n");
+    }
+ 	free(line);
+    fclose(info);
+	getchar();
+	//menu_cliente();
 }
 
 
