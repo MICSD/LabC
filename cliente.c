@@ -271,9 +271,8 @@ void menu_cliente(){
 	printf("\033[22;34m9)\x1b[0m Logout\n\n"ANSI_COLOR_CYAN"---------------------\nEscolha uma opção: ");
 	int opcao;
 	scanf("%d", &opcao);
+	printf(ANSI_COLOR_RESET);
 	getchar(); //ler o \n
-	printf("---------------------\n"ANSI_COLOR_RESET);
-	sleep(1);
 	switch(opcao) {
 		case 1:
 			feed();
@@ -615,9 +614,9 @@ void gerirConta() {
 
     FILE *info;
  
-    char filename[100] = "Login/Users/info_utilizadores", c;
+    char filename[100] = "Login/Users/info_utilizadores";
     char *line = NULL;
-    size_t s = 0; 
+    size_t s = 0,c;
     // Open file
     info = fopen(filename, "r+");
     if (info == NULL)
@@ -682,17 +681,41 @@ void gerirConta() {
     int a;
     while(scanf("%d", &a)!=1);
     getchar();
-    size_t size;
+    size_t size, t_s=s;
     switch(a) {
-    	case 1:
-    	//alterar pass
-    	printf("Nova pass: ");
-    	s=strlen(nova_pass)+1;
-    	getline(&nova_pass,&s,stdin);
-    	strCompact(nova_pass);
-    	printf("'%s'\n", nova_pass);
-    	insertInFile(info,nova_pass,strlen(nova_pass),user_start_byte+username_line_size,pass_line_size-1);
-    	return;
+    	case 1: {
+	    	//alterar pass
+	    	printf("Nova pass: ");
+	    	s=strlen(nova_pass)+1;
+	    	getline(&nova_pass,&s,stdin);
+	    	strCompact(nova_pass);
+	    	printf("Alterou para '%s'\n", nova_pass);
+	    	insertInFile(info,nova_pass,strlen(nova_pass),user_start_byte+username_line_size,pass_line_size-1);
+
+	   		FILE* login_f=fopen("Login/Users/utilizadores","r+");
+	   		if(!login_f) {
+	   			printf("Não foi possível abrir o ficheiro de login!\n");
+	   			break;
+	   		}
+
+	   		user_start_byte=0;
+	   		while((c=getline(&line,&s,login_f)!=-1)) {
+	   			user_start_byte=ftell(login_f)-c;
+	   			size_t username_size=c;
+	   			strCompact(line);
+	   			novo_email=strdup(line);
+	   			if((c=getline(&line,&s,login_f))==-1) {
+	   				break;
+	   			}
+	   			strCompact(line);
+	   			//printf("user: '%s' | user_usado: '%s' | line:'%s'\n",novo_email,user_usado,line);
+	   			if(!strcmp(novo_email,user_usado)) {
+	   				//printf("ENCONTRADO %lu \n", user_start_byte+username_size);
+	   				insertInFile(login_f,line,strlen(line),user_start_byte+username_size,c-1);
+	   			}
+	   		}
+	   		fclose(login_f);
+    	}
     	break;
     	case 2:
     	//alterar nome
@@ -700,7 +723,7 @@ void gerirConta() {
     	s=strlen(novo_nome)+1;
     	getline(&novo_nome,&s,stdin);
     	strCompact(novo_nome);
-    	printf("'%s'\n", novo_nome);
+    	printf("Alterou para '%s'\n", novo_nome);
     	insertInFile(info,novo_nome,strlen(novo_nome),user_start_byte+username_line_size+pass_line_size,nome_line_size-1);
     	break;
     	case 3:
@@ -709,7 +732,7 @@ void gerirConta() {
     	s=strlen(novo_email)+1;
     	getline(&novo_email,&s,stdin);
     	strCompact(novo_email);
-    	printf("'%s'\n", novo_email);
+    	printf("Alterou para '%s'\n", novo_email);
     	insertInFile(info,novo_email,strlen(novo_email),user_start_byte+username_line_size+pass_line_size+nome_line_size,email_line_size-1);
     	break;
     	case 4:
@@ -718,7 +741,7 @@ void gerirConta() {
     	s=strlen(nova_data)+1;
     	getline(&nova_data,&s,stdin);
     	strCompact(nova_data);
-    	printf("'%s'\n", nova_data);
+    	printf("Alterou para '%s'\n", nova_data);
     	insertInFile(info,nova_data,strlen(nova_data),user_start_byte+username_line_size+pass_line_size+nome_line_size+email_line_size,data_line_size-1);
     	break;
     	case 5:
@@ -740,6 +763,7 @@ void gerirConta() {
  	if(nova_data)
  		free(nova_data);
     fclose(info);
+    printf("Prima ENTER para passar ao próximo ecrã...\n");
 	getchar();
 	menu_cliente();
 }
