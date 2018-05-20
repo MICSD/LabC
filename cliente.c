@@ -241,7 +241,7 @@ void login(char user[], char pass[]) {
 				sleep(2);
 				system("clear");
 				printf(ANSI_COLOR_BLUE "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\t\t\t\t\t\t----------------------------\n\t\t\t\t\t\t     Bem vindo(a) %s!\n\t\t\t\t\t\t----------------------------\n" ANSI_COLOR_RESET, user_usado);
-				sleep(4);
+				sleep(2);
 				menu_cliente(); //Vai para o menu_cliente
 				return;
 			}
@@ -272,7 +272,7 @@ void menu_cliente(){
 	scanf("%d", &opcao);
 	getchar(); //ler o \n
 	printf("---------------------\n"ANSI_COLOR_RESET);
-	sleep(2);
+	sleep(1);
 	switch(opcao) {
 		case 1:
 			feed();
@@ -348,8 +348,11 @@ void topicos() {
 }
 
 void topMaisAti() {
+	printf("Função incompleta.\n");
+	getchar();
+	menu_cliente();
 	//PROCURAR TÓPICOS MAIS ATIVOS
-	printf("Pretende filtrar a sua pesquisa num período de tempo (Y/n)? ");
+	/*printf("Pretende filtrar a sua pesquisa num período de tempo (Y/n)? ");
 	char a;
 	if(!isalpha(a)) {
 		printf("Opção inválida! Tente novamente!\n");
@@ -403,7 +406,7 @@ void topMaisAti() {
 	}
 	if(a=='y') {
 		
-	}
+	}*/
 }
 
 size_t getFileSize(FILE* f) {
@@ -619,10 +622,69 @@ void gerirConta() {
     if(!reachedTheUser && c<0) {
     	printf("Utilizador sem informações\n");
     }
+
+    char *line1 = NULL, novo_username[50], nova_pass[30], novo_nome[40], novo_email[50], nova_data[12];
+    size_t t = 0;
+    printf("1) Alterar o username\n");
+    printf("2) Alterar a pass\n");
+    printf("3) Alterar nome\n");
+    printf("4) Alterar o email\n");
+    printf("5) Alterar a data de nascimento\n");
+    printf("6) voltar para o menu\n");
+    int a;
+    scanf("%d", &a);
+    switch(a) {
+    	case 1:
+    	//alterar nome
+    	printf("Novo username: ");
+    	scanf("%s",novo_username);
+
+    	fclose(info);
+    	sleep(1);
+    	menu_cliente();
+    	break;
+    	case 2:
+    	//alterar pass
+    	printf("Nova pass: ");
+    	scanf("%s",nova_pass);
+    	fclose(info);
+    	sleep(1);
+    	menu_cliente();
+    	break;
+    	case 3:
+    	//alterar nome
+    	printf("Novo nome: ");
+    	scanf("%s",novo_nome);
+    	fclose(info);
+    	sleep(1);
+    	menu_cliente();
+    	break;
+    	case 4:
+    	//alterar email
+    	printf("Novo email: ");
+    	scanf("%s",novo_email);
+    	fclose(info);
+    	sleep(1);
+    	menu_cliente();
+    	break;
+    	case 5:
+    	//alterar data de nascimento
+    	printf("Nova data de nascimento: ");
+    	scanf("%s",nova_data);
+    	fclose(info);
+    	menu_cliente();
+    	break;
+    	case 6:
+    	fclose(info);
+    	menu_cliente();
+    	default:
+    	printf(ANSI_COLOR_RED"Opção inválida! Tente novamente!\n"ANSI_COLOR_RESET);
+    	gerirConta();
+   	}
  	free(line);
     fclose(info);
 	getchar();
-	//menu_cliente();
+	menu_cliente();
 }
 
 
