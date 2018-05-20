@@ -5,7 +5,6 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <dirent.h>
-//#include <curses.h>
 #define MAX_SIZE 1000
 #define ANSI_COLOR_GREEN    	 "\x1b[32m"
 #define ANSI_COLOR_RED       	 "\x1b[31m"
@@ -16,11 +15,9 @@
 #define ANSI_COLOR_CYAN     	 "\x1b[36m"
 #define ANSI_COLOR_RESET   		 "\x1b[0m"
 
-#ifndef __cplusplus
 typedef char bool;
 #define true 1
 #define false 0
-#endif
 //funções a corrigir
 bool user_exists(); //verifica se um utilizador já existe ou não
 void topMaisAti(); //procurar tópicos mais ativos
@@ -487,7 +484,7 @@ void subTopico() {
 						break;
 					}
 					if(!strcmp(nome_topico+8,line+2)) { //encontrou o tópico na lista dos tópicos desse utilizador
-						printf("Esse tópico já foi subscrito por si!\n");
+						printf(ANSI_COLOR_YELLOW "Esse tópico já foi subscrito por si!\n" ANSI_COLOR_RESET);
 						break;
 					}
 				}
@@ -506,9 +503,9 @@ void subTopico() {
 						fwrite(p, n_bytes_lista-curr_pos, 1, lista);
 						free(p);
 					}
+					printf(ANSI_COLOR_GREEN "Tópico \"%s\" subscrito com sucesso!\n" ANSI_COLOR_RESET, nome_topico+8);
 				}
 			}
-			printf(ANSI_COLOR_GREEN "Tópico \"%s\" subscrito com sucesso!\n" ANSI_COLOR_RESET, nome_topico+8);
 			sleep(2);
 			menu_cliente();
 		}
