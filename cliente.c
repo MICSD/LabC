@@ -33,6 +33,7 @@ void strCompact(char* str); //limpa caracteres brancos do inicio e do fim de uma
 bool strIsOnlySpaces(const char* str); //vê se uma string tem só white spaces
 void topicos(); //ver topicos e respetivas mensagens e likes
 size_t getFileSize(FILE* f);
+void insertInFile(FILE* f, const char* bytes, size_t nBytes, size_t startPos, size_t bytesToReplace);
 
 //funções por fazer
 void feed(); //mostrar o feed
@@ -572,6 +573,41 @@ void estatisticas() {
 	//VER ESTATISTICAS
 }
 
+void insertInFile(FILE* f, const char* bytes, size_t nBytes, size_t startPos, size_t bytesToReplace) {
+	if(!f || !bytes)
+		return;
+	size_t file_size;
+	fseek(f,0,SEEK_END);
+	file_size=ftell(f);
+	if(startPos+bytesToReplace>file_size)
+		bytesToReplace=file_size-startPos;
+
+	if(file_size<=startPos) { //append to the file
+		fwrite(bytes,nBytes,1,f);
+	} else { //insert in the middle
+		if(startPos+bytesToReplace>=file_size) { //don't need to save anything
+			fseek(f,startPos,SEEK_SET);
+			fwrite(bytes,nBytes,1,f);
+		} else {
+			fseek(f,startPos+bytesToReplace,SEEK_SET);
+			void* temp=malloc(file_size-startPos-bytesToReplace);
+			fread(temp,file_size-startPos-bytesToReplace,1,f);
+
+			fseek(f,startPos,SEEK_SET);
+			fwrite(bytes,nBytes,1,f);
+			fwrite(temp ,file_size-startPos-bytesToReplace,1,f);
+			free(temp);
+		}
+	}
+
+	if(bytesToReplace>nBytes) { //file will shrink
+		size_t new_size;
+		new_size = file_size-bytesToReplace+nBytes;
+		fflush(f);
+		ftruncate(fileno(f),new_size);
+	}
+}
+
 void gerirConta() {
 	//MUDAR A SENHA, NOME, DATA DE NASCIMENTO, EMAIL, ...
 	printf("Olá %s!\n", user_usado);
@@ -583,35 +619,50 @@ void gerirConta() {
     char *line = NULL;
     size_t s = 0; 
     // Open file
-    info = fopen(filename, "r");
+    info = fopen(filename, "r+");
     if (info == NULL)
     {
         printf("Cannot open file \n");
         menu_cliente();
     }
  	
- 	size_t n_bytes=getFileSize(info);
+ 	size_t n_bytes=getFileSize(info), user_start_byte=n_bytes;
  	fseek(info,0,SEEK_SET);
     // Lê o conteúdo do ficheiro
  	bool reachedTheUser=false;
+    char *line1 = NULL, *novo_username=NULL, *nova_pass=NULL, *novo_nome=NULL, *novo_email=NULL, *nova_data=NULL;
+    size_t username_line_size=0, pass_line_size=0, nome_line_size=0, email_line_size=0, data_line_size=0;
     for (int count = 0 ; (c = getline(&line,&s,info))!=EOF ; count=count>=4?0:(count+1))
     {
+    	size_t line_size=strlen(line);
     	strCompact(line);
     	if(count==0) {
     		reachedTheUser=!strcmp(line,user_usado);
+    		user_start_byte=ftell(info)-c;
     	}
     	if(reachedTheUser) {
-    		if(count==0)
+    		if      (count==0) {
 	    		printf("Username: ");
-	    	else if(count==1) {
+	    		novo_username=strdup(line);
+	    		username_line_size = line_size;
+    		}
+	    	else if (count==1) {
 	    		printf("Pass: ");
+	    		nova_pass=strdup(line);
+	    		pass_line_size = line_size;
 	    	}else if(count==2) {
 	    		printf("Nome: ");
+	    		novo_nome=strdup(line);
+	    		nome_line_size = line_size;
 	    	}else if(count==3) {
 	    		printf("Email: ");
+	    		novo_email=strdup(line);
+	    		email_line_size = line_size;
 	    	}
 	    	else if(count==4) {
-	    		printf("Data de nascimento: %s", line);
+	    		printf("Data de nascimento: %s\n", line);
+	    		nova_data=strdup(line);
+	    		data_line_size = line_size;
 	    		break;
 	    	}
 	    	else
@@ -623,65 +674,71 @@ void gerirConta() {
     	printf("Utilizador sem informações\n");
     }
 
-    char *line1 = NULL, novo_username[50], nova_pass[30], novo_nome[40], novo_email[50], nova_data[12];
-    size_t t = 0;
-    printf("1) Alterar o username\n");
-    printf("2) Alterar a pass\n");
-    printf("3) Alterar nome\n");
-    printf("4) Alterar o email\n");
-    printf("5) Alterar a data de nascimento\n");
-    printf("6) voltar para o menu\n");
+    printf("1) Alterar a pass\n");
+    printf("2) Alterar nome\n");
+    printf("3) Alterar o email\n");
+    printf("4) Alterar a data de nascimento\n");
+    printf("5) voltar para o menu\n");
     int a;
-    scanf("%d", &a);
+    while(scanf("%d", &a)!=1);
+    getchar();
+    size_t size;
     switch(a) {
     	case 1:
-    	//alterar nome
-    	printf("Novo username: ");
-    	scanf("%s",novo_username);
-
-    	fclose(info);
-    	sleep(1);
-    	menu_cliente();
-    	break;
-    	case 2:
     	//alterar pass
     	printf("Nova pass: ");
-    	scanf("%s",nova_pass);
-    	fclose(info);
-    	sleep(1);
-    	menu_cliente();
+    	s=strlen(nova_pass)+1;
+    	getline(&nova_pass,&s,stdin);
+    	strCompact(nova_pass);
+    	printf("'%s'\n", nova_pass);
+    	insertInFile(info,nova_pass,strlen(nova_pass),user_start_byte+username_line_size,pass_line_size-1);
+    	return;
     	break;
-    	case 3:
+    	case 2:
     	//alterar nome
     	printf("Novo nome: ");
-    	scanf("%s",novo_nome);
-    	fclose(info);
-    	sleep(1);
-    	menu_cliente();
+    	s=strlen(novo_nome)+1;
+    	getline(&novo_nome,&s,stdin);
+    	strCompact(novo_nome);
+    	printf("'%s'\n", novo_nome);
+    	insertInFile(info,novo_nome,strlen(novo_nome),user_start_byte+username_line_size+pass_line_size,nome_line_size-1);
     	break;
-    	case 4:
+    	case 3:
     	//alterar email
     	printf("Novo email: ");
-    	scanf("%s",novo_email);
-    	fclose(info);
-    	sleep(1);
-    	menu_cliente();
+    	s=strlen(novo_email)+1;
+    	getline(&novo_email,&s,stdin);
+    	strCompact(novo_email);
+    	printf("'%s'\n", novo_email);
+    	insertInFile(info,novo_email,strlen(novo_email),user_start_byte+username_line_size+pass_line_size+nome_line_size,email_line_size-1);
     	break;
-    	case 5:
+    	case 4:
     	//alterar data de nascimento
     	printf("Nova data de nascimento: ");
-    	scanf("%s",nova_data);
-    	fclose(info);
-    	menu_cliente();
+    	s=strlen(nova_data)+1;
+    	getline(&nova_data,&s,stdin);
+    	strCompact(nova_data);
+    	printf("'%s'\n", nova_data);
+    	insertInFile(info,nova_data,strlen(nova_data),user_start_byte+username_line_size+pass_line_size+nome_line_size+email_line_size,data_line_size-1);
     	break;
-    	case 6:
-    	fclose(info);
-    	menu_cliente();
+    	case 5:
+
+    	break;
     	default:
     	printf(ANSI_COLOR_RED"Opção inválida! Tente novamente!\n"ANSI_COLOR_RESET);
     	gerirConta();
    	}
  	free(line);
+ 	if(novo_username)
+ 		free(novo_username);
+ 	if(nova_pass)
+ 		free(nova_pass);
+ 	if(novo_nome)
+ 		free(novo_nome);
+ 	if(novo_email)
+ 		free(novo_email);
+ 	if(nova_data)
+ 		free(nova_data);
     fclose(info);
 	getchar();
 	menu_cliente();
